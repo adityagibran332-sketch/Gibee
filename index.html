@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jangan Sentuh Merah</title>
+
+<style>
+body{
+    margin:0;
+    font-family:Arial,sans-serif;
+    background:#111;
+    color:white;
+    text-align:center;
+}
+
+h1{
+    margin:15px;
+}
+
+.creator{
+    color:#aaa;
+    margin-top:-10px;
+    margin-bottom:10px;
+}
+
+#game{
+    width:800px;
+    height:500px;
+    max-width:95vw;
+    border:3px solid white;
+    margin:auto;
+    position:relative;
+    overflow:hidden;
+    background:#222;
+}
+
+#player{
+    width:30px;
+    height:30px;
+    background:lime;
+    position:absolute;
+    left:50px;
+    top:50px;
+}
+
+.enemy{
+    width:35px;
+    height:35px;
+    background:red;
+    position:absolute;
+}
+
+#score{
+    font-size:24px;
+    margin:10px;
+}
+
+#gameover{
+    display:none;
+    position:absolute;
+    inset:0;
+    background:rgba(0,0,0,.8);
+    justify-content:center;
+    align-items:center;
+    flex-direction:column;
+    font-size:30px;
+}
+
+button{
+    padding:10px 20px;
+    font-size:18px;
+    cursor:pointer;
+}
+</style>
+</head>
+<body>
+
+<h1>JANGAN SENTUH MERAH</h1>
+<p class="creator">dibuat oleh @muh.gibrannnnaditya</p>
+
+<div id="score">Skor: 0</div>
+
+<div id="game">
+    <div id="player"></div>
+
+    <div id="gameover">
+        <div id="finalScore"></div>
+        <br>
+        <button onclick="restart()">Main Lagi</button>
+    </div>
+</div>
+
+<script>
+const game = document.getElementById("game");
+const player = document.getElementById("player");
+const scoreText = document.getElementById("score");
+const gameover = document.getElementById("gameover");
+const finalScore = document.getElementById("finalScore");
+
+let x = 50;
+let y = 50;
+let score = 0;
+let running = true;
+
+const keys = {};
+
+document.addEventListener("keydown", e => keys[e.key] = true);
+document.addEventListener("keyup", e => keys[e.key] = false);
+
+const enemies = [];
+
+for(let i=0;i<5;i++){
+    const enemy = document.createElement("div");
+    enemy.className = "enemy";
+
+    game.appendChild(enemy);
+
+    enemies.push({
+        el: enemy,
+        x: Math.random()*700,
+        y: Math.random()*400,
+        vx: (Math.random()*4)+2,
+        vy: (Math.random()*4)+2
+    });
+}
+
+function updatePlayer(){
+    if(keys["ArrowUp"] || keys["w"]) y -= 5;
+    if(keys["ArrowDown"] || keys["s"]) y += 5;
+    if(keys["ArrowLeft"] || keys["a"]) x -= 5;
+    if(keys["ArrowRight"] || keys["d"]) x += 5;
+
+    x = Math.max(0, Math.min(game.clientWidth-30, x));
+    y = Math.max(0, Math.min(game.clientHeight-30, y));
+
+    player.style.left = x + "px";
+    player.style.top = y + "px";
+}
+
+function hit(a,b){
+    return (
+        a.x < b.x+b.w &&
+        a.x+a.w > b.x &&
+        a.y < b.y+b.h &&
+        a.y+a.h > b.y
+    );
+}
+
+function loop(){
+
+    if(!running) return;
+
+    updatePlayer();
+
+    enemies.forEach(e => {
+
+        e.x += e.vx;
+        e.y += e.vy;
+
+        if(e.x <= 0 || e.x >= game.clientWidth-35)
+            e.vx *= -1;
+
+        if(e.y <= 0 || e.y >= game.clientHeight-35)
+            e.vy *= -1;
+
+        e.el.style.left = e.x + "px";
+        e.el.style.top = e.y + "px";
+
+        if(hit(
+            {x,y,w:30,h:30},
+            {x:e.x,y:e.y,w:35,h:35}
+        )){
+            endGame();
+        }
+    });
+
+    requestAnimationFrame(loop);
+}
+
+function endGame(){
+    running = false;
+    gameover.style.display = "flex";
+
+    finalScore.innerHTML =
+        "Skor Akhir: " + score +
+        "<br><br><span style='font-size:18px;color:#aaa'>@muh.gibrannnnaditya</span>";
+}
+
+function restart(){
+    location.reload();
+}
+
+setInterval(()=>{
+    if(running){
+        score++;
+        scoreText.textContent = "Skor: " + score;
+    }
+},100);
+
+loop();
+</script>
+
+</body>
+</html>
